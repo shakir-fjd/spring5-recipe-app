@@ -21,7 +21,7 @@ public class Recipe {
     @Lob
     private String directions;
     @Lob
-    private byte[] image;
+    private Byte[] image;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "recipe")
     private Set<Ingredient> ingredients = new HashSet<>();
