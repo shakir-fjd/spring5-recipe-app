@@ -1,10 +1,13 @@
 package guru.springframework.service;
 
+import guru.springframework.commands.*;
+import guru.springframework.converters.*;
 import guru.springframework.domain.*;
 import guru.springframework.repositories.*;
 import lombok.extern.slf4j.*;
 import org.springframework.stereotype.*;
 
+import javax.transaction.*;
 import java.util.*;
 
 @Slf4j
@@ -12,9 +15,13 @@ import java.util.*;
 public class RecipeServiceImpl implements RecipeService {
 
     private final RecipeRepository recipeRepository;
+    private final RecipeCommandToRecipe recipeCommandToRecipe;
+    private final RecipeToRecipeCommand recipeToRecipeCommand;
 
-    public RecipeServiceImpl(RecipeRepository recipeRepository) {
+    public RecipeServiceImpl(RecipeRepository recipeRepository, RecipeCommandToRecipe recipeCommandToRecipe, RecipeToRecipeCommand recipeToRecipeCommand) {
         this.recipeRepository = recipeRepository;
+        this.recipeCommandToRecipe = recipeCommandToRecipe;
+        this.recipeToRecipeCommand = recipeToRecipeCommand;
     }
 
     @Override
@@ -23,5 +30,39 @@ public class RecipeServiceImpl implements RecipeService {
         Set<Recipe> setOfRecipes = new HashSet<>();
         recipeRepository.findAll().iterator().forEachRemaining(setOfRecipes::add);
         return setOfRecipes;
+    }
+
+    public Recipe getRecipeById(Long Id) {
+        Optional<Recipe> recipeOptional = recipeRepository.findById(Id);
+        if (!recipeOptional.isPresent()) {
+            throw new RuntimeException("Recipe Not Found!");
+        }
+        return recipeOptional.get();
+    }
+
+    @Override
+    @Transactional
+    public RecipeCommand saveRecipeCommand(RecipeCommand command) {
+        Recipe detachedRecipe = recipeCommandToRecipe.convert(command);
+        Recipe savedRecipe = recipeRepository.save(detachedRecipe);
+        log.debug("SAVED RECIPE ::::: " + savedRecipe.getId());
+        return recipeToRecipeCommand.convert(savedRecipe);
+    }
+
+    @Override
+    public RecipeCommand findRecipeCommandById(Long id) {
+        return recipeToRecipeCommand.convert(getRecipeById(id));
+    }
+
+    @Override
+    @Transactional
+    public Recipe saveRecipe(Recipe recipe) {
+        Recipe returnedRecipe = recipeRepository.save(recipe);
+        return returnedRecipe;
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        recipeRepository.deleteById(id);
     }
 }

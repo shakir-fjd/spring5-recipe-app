@@ -1,5 +1,6 @@
 package guru.springframework.service;
 
+import guru.springframework.converters.*;
 import guru.springframework.domain.*;
 import guru.springframework.repositories.*;
 import org.junit.*;
@@ -12,15 +13,21 @@ import static org.mockito.Mockito.*;
 
 public class RecipeServiceImplTest {
 
-    RecipeService recipeService;
+    RecipeServiceImpl recipeService;
 
     @Mock
     RecipeRepository recipeRepository;
 
+    @Mock
+    RecipeToRecipeCommand recipeToRecipeCommand;
+
+    @Mock
+    RecipeCommandToRecipe recipeCommandToRecipe;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        recipeService = new RecipeServiceImpl(recipeRepository);
+        recipeService = new RecipeServiceImpl(recipeRepository, recipeCommandToRecipe, recipeToRecipeCommand);
     }
 
     @Test
@@ -35,7 +42,25 @@ public class RecipeServiceImplTest {
         when(recipeRepository.findAll()).thenReturn(set);
 //        when(recipeService.getRecipeList()).thenReturn(set);
         Set<Recipe> recipes = recipeService.getRecipeList();
-        assertEquals(recipes.size(), 2 );
+        assertEquals(recipes.size(), 2);
+    }
 
+    @Test
+    public void getRecipeById() {
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+        Optional<Recipe> recipeOptional = Optional.of(recipe);
+        when(recipeRepository.findById(anyLong())).thenReturn(recipeOptional);
+        Recipe recipeReturned = recipeService.getRecipeById(1L);
+        assertNotNull(recipeReturned);
+        verify(recipeRepository).findById(anyLong());
+        verify(recipeRepository, never()).findAll();
+    }
+
+    @Test
+    public void deleteByDI() {
+        Long idToDelete = 1L;
+        recipeService.deleteById(idToDelete);
+        verify(recipeRepository).deleteById(anyLong());
     }
 }
