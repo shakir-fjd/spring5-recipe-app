@@ -30,7 +30,9 @@ public class ImageControllerTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         imageController = new ImageController(recipeService, imageService);
-        mock = MockMvcBuilders.standaloneSetup(imageController).build();
+        mock = MockMvcBuilders.standaloneSetup(imageController)
+                .setControllerAdvice(new ControllerExceptionHandler())
+                .build();
     }
 
     @Test

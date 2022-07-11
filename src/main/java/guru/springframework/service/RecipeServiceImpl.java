@@ -3,6 +3,7 @@ package guru.springframework.service;
 import guru.springframework.commands.*;
 import guru.springframework.converters.*;
 import guru.springframework.domain.*;
+import guru.springframework.exceptions.*;
 import guru.springframework.repositories.*;
 import lombok.extern.slf4j.*;
 import org.springframework.stereotype.*;
@@ -32,10 +33,11 @@ public class RecipeServiceImpl implements RecipeService {
         return setOfRecipes;
     }
 
-    public Recipe getRecipeById(Long Id) {
-        Optional<Recipe> recipeOptional = recipeRepository.findById(Id);
+    public Recipe getRecipeById(Long id) {
+        Optional<Recipe> recipeOptional = recipeRepository.findById(id);
         if (!recipeOptional.isPresent()) {
-            throw new RuntimeException("Recipe Not Found!");
+//            throw new RuntimeException("Recipe Not Found!");
+            throw new NotFoundException("Recipe not Found for ID: " + id.toString());
         }
         return recipeOptional.get();
     }
